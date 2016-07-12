@@ -463,20 +463,17 @@ class Connection(object):
                     f, args = obj.split('(', 1)
                 except:
                     raise Error('Illegal function signature: "%s".' % obj)
-                obj_ids.append('"%s"."%s"(%s' % (schema_qualifier, f, args))
+                obj_ids.append('%s.%s(%s' % (pg_quote_identifier(schema_qualifier), pg_quote_identifier(f), args))
         elif obj_type in ['table', 'sequence']:
-            obj_ids = ['"%s"."%s"' % (schema_qualifier, o) for o in objs]
+            obj_ids = ['%s.%s' % (pg_quote_identifier(schema_qualifier), pg_quote_identifier(o)) for o in objs]
         else:
-            obj_ids = ['"%s"' % o for o in objs]
+            obj_ids = ['%s' % pg_quote_identifier(o) for o in objs]
 
         # set_what: SQL-fragment specifying what to set for the target roles:
         # Either group membership or privileges on objects of a certain type
         if obj_type == 'group':
-            set_what = ','.join(pg_quote_identifier(i, 'role') for i in obj_ids)
+            set_what = ','.join(pg_quote_identifier(i) for i in obj_ids)
         else:
-            # function types are already quoted above
-            if obj_type != 'function':
-                obj_ids = [pg_quote_identifier(i, 'table') for i in obj_ids]
             # Note: obj_type has been checked against a set of string literals
             # and privs was escaped when it was parsed
             set_what = '%s ON %s %s' % (','.join(privs), obj_type,
@@ -486,7 +483,7 @@ class Connection(object):
         if roles == 'PUBLIC':
             for_whom = 'PUBLIC'
         else:
-            for_whom = ','.join(pg_quote_identifier(r, 'role') for r in roles)
+            for_whom = ','.join(pg_quote_identifier(r) for r in roles)
 
         status_before = get_status(objs)
         if state == 'present':

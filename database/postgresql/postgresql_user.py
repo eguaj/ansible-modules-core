@@ -208,7 +208,7 @@ def user_add(cursor, user, password, role_attr_flags, encrypted, expires):
     """Create a new database user (role)."""
     # Note: role_attr_flags escaped by parse_role_attrs and encrypted is a literal
     query_password_data = dict(password=password, expires=expires)
-    query = ['CREATE USER %(user)s' % { "user": pg_quote_identifier(user, 'role')}]
+    query = ['CREATE USER %(user)s' % { "user": pg_quote_identifier(user)}]
     if password is not None:
         query.append("WITH %(crypt)s" % { "crypt": encrypted })
         query.append("PASSWORD %(password)s")
@@ -278,7 +278,7 @@ def user_alter(cursor, module, user, password, role_attr_flags, encrypted, expir
         if not pwchanging and not role_attr_flags_changing and not expires_changing:
             return False
 
-        alter = ['ALTER USER %(user)s' % {"user": pg_quote_identifier(user, 'role')}]
+        alter = ['ALTER USER %(user)s' % {"user": pg_quote_identifier(user)}]
         if pwchanging:
             alter.append("WITH %(crypt)s" % {"crypt": encrypted})
             alter.append("PASSWORD %(password)s")
@@ -316,7 +316,7 @@ def user_delete(cursor, user):
     """Try to remove a user. Returns True if successful otherwise False"""
     cursor.execute("SAVEPOINT ansible_pgsql_user_delete")
     try:
-        cursor.execute("DROP USER %s" % pg_quote_identifier(user, 'role'))
+        cursor.execute("DROP USER %s" % pg_quote_identifier(user))
     except:
         cursor.execute("ROLLBACK TO SAVEPOINT ansible_pgsql_user_delete")
         cursor.execute("RELEASE SAVEPOINT ansible_pgsql_user_delete")
@@ -355,14 +355,14 @@ def grant_table_privileges(cursor, user, table, privs):
     # Note: priv escaped by parse_privs
     privs = ', '.join(privs)
     query = 'GRANT %s ON TABLE %s TO %s' % (
-        privs, pg_quote_identifier(table, 'table'), pg_quote_identifier(user, 'role') )
+        privs, pg_quote_identifier(table), pg_quote_identifier(user) )
     cursor.execute(query)
 
 def revoke_table_privileges(cursor, user, table, privs):
     # Note: priv escaped by parse_privs
     privs = ', '.join(privs)
     query = 'REVOKE %s ON TABLE %s FROM %s' % (
-        privs, pg_quote_identifier(table, 'table'), pg_quote_identifier(user, 'role') )
+        privs, pg_quote_identifier(table), pg_quote_identifier(user) )
     cursor.execute(query)
 
 def get_database_privileges(cursor, user, db):
@@ -405,11 +405,11 @@ def grant_database_privileges(cursor, user, db, privs):
     privs =', '.join(privs)
     if user == "PUBLIC":
         query = 'GRANT %s ON DATABASE %s TO PUBLIC' % (
-                privs, pg_quote_identifier(db, 'database'))
+                privs, pg_quote_identifier(db))
     else:
         query = 'GRANT %s ON DATABASE %s TO %s' % (
-                privs, pg_quote_identifier(db, 'database'),
-                pg_quote_identifier(user, 'role'))
+                privs, pg_quote_identifier(db),
+                pg_quote_identifier(user))
     cursor.execute(query)
 
 def revoke_database_privileges(cursor, user, db, privs):
@@ -417,11 +417,11 @@ def revoke_database_privileges(cursor, user, db, privs):
     privs = ', '.join(privs)
     if user == "PUBLIC":
         query = 'REVOKE %s ON DATABASE %s FROM PUBLIC' % (
-                privs, pg_quote_identifier(db, 'database'))
+                privs, pg_quote_identifier(db))
     else:
         query = 'REVOKE %s ON DATABASE %s FROM %s' % (
-                privs, pg_quote_identifier(db, 'database'),
-                pg_quote_identifier(user, 'role'))
+                privs, pg_quote_identifier(db),
+                pg_quote_identifier(user))
     cursor.execute(query)
 
 def revoke_privileges(cursor, user, privs):

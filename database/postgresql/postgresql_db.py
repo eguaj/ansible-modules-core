@@ -125,8 +125,8 @@ class NotSupportedError(Exception):
 
 def set_owner(cursor, db, owner):
     query = "ALTER DATABASE %s OWNER TO %s" % (
-            pg_quote_identifier(db, 'database'),
-            pg_quote_identifier(owner, 'role'))
+            pg_quote_identifier(db),
+            pg_quote_identifier(owner))
     cursor.execute(query)
     return True
 
@@ -153,7 +153,7 @@ def db_exists(cursor, db):
 
 def db_delete(cursor, db):
     if db_exists(cursor, db):
-        query = "DROP DATABASE %s" % pg_quote_identifier(db, 'database')
+        query = "DROP DATABASE %s" % pg_quote_identifier(db)
         cursor.execute(query)
         return True
     else:
@@ -162,11 +162,11 @@ def db_delete(cursor, db):
 def db_create(cursor, db, owner, template, encoding, lc_collate, lc_ctype):
     params = dict(enc=encoding, collate=lc_collate, ctype=lc_ctype)
     if not db_exists(cursor, db):
-        query_fragments = ['CREATE DATABASE %s' % pg_quote_identifier(db, 'database')]
+        query_fragments = ['CREATE DATABASE %s' % pg_quote_identifier(db)]
         if owner:
-            query_fragments.append('OWNER %s' % pg_quote_identifier(owner, 'role'))
+            query_fragments.append('OWNER %s' % pg_quote_identifier(owner))
         if template:
-            query_fragments.append('TEMPLATE %s' % pg_quote_identifier(template, 'database'))
+            query_fragments.append('TEMPLATE %s' % pg_quote_identifier(template))
         if encoding:
             query_fragments.append('ENCODING %(enc)s')
         if lc_collate:
